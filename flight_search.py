@@ -39,7 +39,6 @@ class FlightSearch:
 
         try:
             data = res.json()["data"][0]
-            print(res.json())
         except IndexError:
             print(f"No flight data for {destination_city_code}.")
             return None
