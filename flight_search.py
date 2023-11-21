@@ -36,21 +36,40 @@ class FlightSearch:
 
         res = requests.get(f"{TEQUILA_ENDPOINT}/search",
                            headers=HEADERS, params=params)
-
         try:
             data = res.json()["data"][0]
         except IndexError:
-            print(f"No flight data for {destination_city_code}.")
-            return None
+            try:
+                params["max_stopovers"] = 1
+                res = requests.get(f"{TEQUILA_ENDPOINT}/search",
+                                   headers=HEADERS, params=params)
+                data = res.json()["data"][0]
+                flight_data = FlightData(
+                    price=data["price"],
+                    origin_city=data["cityFrom"],
+                    origin_airport=data["flyFrom"],
+                    destination_city=data["cityTo"],
+                    destination_airport=data["flyTo"],
+                    out_date=data["route"][0]["dTime"],
+                    return_date=data["route"][1]["dTime"],
+                    flight_duration=data["fly_duration"],
+                    stop_over=1,
+                    via_city=data["route"][0]["cityTo"]
+                )
+                return flight_data
 
-        flight_data = FlightData(
-            price=data["price"],
-            origin_city=data["cityFrom"],
-            origin_airport=data["flyFrom"],
-            destination_city=data["cityTo"],
-            destination_airport=data["flyTo"],
-            out_date=data["route"][0]["dTime"],
-            return_date=data["route"][1]["dTime"],
-            flight_duration=data["fly_duration"]
-        )
-        return flight_data
+            except IndexError:
+                print("No direct flight or with less than 2 stopovers.")
+                return None
+        else:
+            flight_data = FlightData(
+                price=data["price"],
+                origin_city=data["cityFrom"],
+                origin_airport=data["flyFrom"],
+                destination_city=data["cityTo"],
+                destination_airport=data["flyTo"],
+                out_date=data["route"][0]["dTime"],
+                return_date=data["route"][1]["dTime"],
+                flight_duration=data["fly_duration"]
+            )
+            return flight_data

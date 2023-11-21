@@ -22,6 +22,15 @@ for destination in sheet_data:
         ORIGIN_CITY_IATA, destination["iataCode"])
     if flight != None:
         if flight.price < destination["lowestPrice"]:
-            notification_manager.send_notification(
-                message=f"Low price! To fly from {flight.origin_city}-{flight.origin_airport} to {flight.destination_city}-{flight.destination_airport}, from {flight.out_date} to {flight.return_date} is only {flight.price} RON"
-            )
+
+            users = data_manager.get_emails()
+            emails = [row["email"] for row in users]
+            first_name = [row["firstName"] for row in users]
+
+            message = f"Low price! To fly from {flight.origin_city}-{flight.origin_airport} to {flight.destination_city}-{flight.destination_airport}, from {flight.out_date} to {flight.return_date} is only {flight.price} RON"
+
+            if flight.stop_over > 0:
+                message += f"\nFlight has {flight.stop_over}, via {flight.via_city}."
+
+            notification_manager.send_email(
+                emails=emails, message=message, first_name=first_name)
